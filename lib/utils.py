@@ -161,7 +161,7 @@ def parse_pattern_term(tokens: PatternTokens) -> Any:
     peeked = tokens.peek()
     if peeked is None or not peeked:
         # there is no new tokens; the expression is malformed
-        raise ValueError("parse error")
+        raise ValueError("EOL")
     elif peeked[0] == '"':
         # the expression is a bare string
         next(tokens)
@@ -191,7 +191,15 @@ class Pattern:
 
     def __init__(self, pattern: str):
         """Parse 'pattern' expression and return a Pattern"""
-        self.pattern = parse_pattern_or(PatternTokens(pattern))
+        try:
+            self.pattern = parse_pattern_or(PatternTokens(pattern))
+        except ValueError as err:
+            if err.args[0] == "parse error":
+                raise ValueError(f"Pattern '{pattern}' can't be parsed.")
+            elif err.args[0] == "EOL":
+                raise ValueError(f"Pattern '{pattern}' ends unexpectedly.")
+            else:
+                raise ValueError(f"Unexpected token: {err.args[0]}")
 
     def match(self, line: str) -> bool:
         """Checks if the 'line' matches the pattern"""
