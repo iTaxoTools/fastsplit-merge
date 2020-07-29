@@ -165,7 +165,7 @@ def parse_pattern_term(tokens: PatternTokens) -> Any:
     elif peeked[0] == '"':
         # the expression is a bare string
         next(tokens)
-        return peeked[1:-1]
+        return re.compile(re.escape(peeked[1:-1]), re.IGNORECASE)
     elif peeked == '(':
         # the expression is a bracketed expression
         # remove '(' from the iterator
@@ -208,9 +208,9 @@ class Pattern:
     @staticmethod
     def _match(pattern: Any, line: str) -> bool:
         """The internal matching algorithm"""
-        if isinstance(pattern, str):
-            # pattern is a string; simple match
-            return pattern in line
+        if isinstance(pattern, re.Pattern):
+            # pattern is a regex; simple match
+            return bool(pattern.search(line))
         elif isinstance(pattern, list):
             # pattern is an expression
             if pattern == []:
