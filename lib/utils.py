@@ -56,7 +56,7 @@ class PatternTokens:
         """Creates peekable iterator over tokens in 'text'"""
         # standard iterator over tokens
         self.tokens: Iterator[str] = map(lambda m: m.group(0), re.finditer(
-            r'\(|\)|"[^"]*"|and|or|not', text))
+            r'\(|\)|"[^"]*"|\w+', text))
         # saves the peeked token
         self.peeked: Optional[str] = None
 
@@ -195,11 +195,13 @@ class Pattern:
             self.pattern = parse_pattern_or(PatternTokens(pattern))
         except ValueError as err:
             if err.args[0] == "parse error":
-                raise ValueError(f"Pattern '{pattern}' can't be parsed.")
+                raise ValueError(
+                    f"Pattern '{pattern}' can't be parsed.") from err
             elif err.args[0] == "EOL":
-                raise ValueError(f"Pattern '{pattern}' ends unexpectedly.")
+                raise ValueError(
+                    f"Pattern '{pattern}' ends unexpectedly.") from err
             else:
-                raise ValueError(f"Unexpected token: {err.args[0]}")
+                raise ValueError(f"Unexpected token: {err.args[0]}") from err
 
     def match(self, line: str) -> bool:
         """Checks if the 'line' matches the pattern"""
