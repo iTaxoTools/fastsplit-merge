@@ -37,23 +37,6 @@ def fastmerge(file_list: Iterable[str], file_types: Optional[Set[str]], seqid_pa
             fastmerge_type(file_list, file_types, output)
 
 
-def parse_pattern_optional(pattern: Optional[str]) -> Optional[Pattern]:
-    if pattern:
-        return Pattern(pattern)
-    else:
-        return None
-
-
-def ext_gz(path: Union[str, os.PathLike]) -> str:
-    """
-    Returns the extension, returns internal extension for gzip archives
-    """
-    root, ext = os.path.splitext(path)
-    if ext == '.gz':
-        _, ext = os.path.splitext(root)
-    return ext
-
-
 def list_files(file_list: Iterable[str]) -> Iterator[Union[str, os.DirEntry]]:
     """
     For each file in 'file_list' yield its name.

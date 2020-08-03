@@ -1,6 +1,48 @@
 #!/usr/bin/env python3
-from typing import TextIO, Tuple, Iterator, List, Optional, Any
+from typing import TextIO, Tuple, Iterator, List, Optional, Any, Union
 import re
+import os
+
+
+def parse_pattern_optional(pattern: Optional[str]) -> Optional[Pattern]:
+    """
+    Returns None for None and "", otherwise parses the Pattern
+    """
+    if pattern:
+        return Pattern(pattern)
+    else:
+        return None
+
+
+def ext_gz(path: Union[str, os.PathLike]) -> str:
+    """
+    Returns the extension, returns internal extension for gzip archives
+    """
+    root, ext = os.path.splitext(path)
+    if ext == '.gz':
+        _, ext = os.path.splitext(root)
+    return ext
+
+
+def make_template(filename: str) -> str:
+    """
+    Insert '#' before the extension, generates the input for template_filenames
+    """
+    ext = ""
+    while True:
+        filename, ext_part = os.path.splitext(filename)
+        if not ext_part:
+            break
+        else:
+            ext = ext_part + ext
+    return filename + '#' + ext
+
+
+def template_filenames(template: str) -> Iterator[str]:
+    root, _, ext = template.partition('#')
+    count = 0
+    while True:
+        yield root + str(count) + ext
 
 
 def fasta_iter(file: TextIO) -> Iterator[Tuple[str, List[str]]]:
