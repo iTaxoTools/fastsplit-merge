@@ -46,6 +46,26 @@ It uncompresses the gzip archives if necessary. The output is written to the sta
 
 When --seqid or --sequence and either --fasta or --fastq options are given, only the sequence records matching the patterns are written to the output.
 
+## Fastsplit
+
+### Usage
+    usage: fastsplit.py [-h] [--fasta | --fastq] [--split_n SPLIT_N | --maxsize MAXSIZE] [--compressed] [infile] [outfile]
+    
+    positional arguments:
+      infile             Input file name
+      outfile            outfile file template
+    
+    optional arguments:
+      -h, --help         show this help message and exit
+      --fasta            Input file is a fasta file
+      --fastq            Input file is a fastq file
+      --split_n SPLIT_N  number of files to split into
+      --maxsize MAXSIZE  Maximum size of output file
+      --compressed       Compress output files with gzip
+
+### Command-line interface
+Fastsplit reads the input file and splits into files according to the options. Currently supported formats are FASTA and FastQ. Currently supported splitting options are by number of output files (`split_n`) and maximum size of an output file (`maxsize`). These criteria are not enforced strictly, especially when the size of parts is small.
+
 ## Filtering
 A pattern consists of strings in double quotes, operators 'and', 'or' and 'not' (unquoted) and parentheses. It should be given in single quotes for the command-line interface and unquoted for the GUI.
 

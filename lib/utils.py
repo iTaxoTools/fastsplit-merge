@@ -1,17 +1,8 @@
 #!/usr/bin/env python3
-from typing import TextIO, Tuple, Iterator, List, Optional, Any, Union
+from typing import TextIO, Tuple, Iterator, List, Optional, Any, Union, IO, AnyStr, Generator
 import re
 import os
-
-
-def parse_pattern_optional(pattern: Optional[str]) -> Optional[Pattern]:
-    """
-    Returns None for None and "", otherwise parses the Pattern
-    """
-    if pattern:
-        return Pattern(pattern)
-    else:
-        return None
+import gzip
 
 
 def ext_gz(path: Union[str, os.PathLike]) -> str:
@@ -38,11 +29,32 @@ def make_template(filename: str) -> str:
     return filename + '#' + ext
 
 
-def template_filenames(template: str) -> Iterator[str]:
+def template_files(template: str, mode: str, compressed: bool) -> Generator[IO[AnyStr], str, None]:
+    """
+    Generates files based on the given template.
+    They are open with the given 'mode'.
+    They are compressed if 'compressed'.
+    Send 'stop' to finish iteration and close the last file.
+    """
+    # destruct the template
     root, _, ext = template.partition('#')
+    # track the number of files
     count = 0
     while True:
-        yield root + str(count) + ext
+        # generate new file name
+        filename = root + str(count) + ext
+        count += 1
+        # open the file, possibly with gzip
+        if compressed:
+            file = gzip.open(filename, mode=mode)
+        else:
+            file = open(filename, mode=mode)
+        # yield the file
+        with file:
+            command = yield file
+        # stop iteration if received 'stop' command
+        if command == 'stop':
+            break
 
 
 def fasta_iter(file: TextIO) -> Iterator[Tuple[str, List[str]]]:
@@ -75,6 +87,36 @@ def fasta_iter(file: TextIO) -> Iterator[Tuple[str, List[str]]]:
                 sequence_list.append(line)
 
 
+def fasta_iter_chunks(file: TextIO) -> Iterator[List[str]]:
+    """Iterator that emits groups of lines belonging to the same record in a FASTA file"""
+    # find the first line of the first record
+    while True:
+        line = file.readline()
+        if not line:
+            return
+        if line[0] == '>':
+            break
+    # seqid now contains the first sequence identifier
+    seqid = line
+    while True:
+        # collect the line representing the sequence
+        sequence_list: List[str] = [seqid]
+        while True:
+            line = file.readline()
+            if not line:
+                # EOF => emit the last record
+                yield sequence_list
+                return
+            elif line[0] == '>':
+                # next record starts => emit the current record and remember the new seqid
+                yield sequence_list
+                seqid = line
+                break
+            else:
+                # append another line to the sequence
+                sequence_list.append(line)
+
+
 def fastq_iter(file: TextIO) -> Iterator[Tuple[str, str, str, str]]:
     """Iterator the emits groups of lines belonging to the same record in a FastQ file"""
     while True:
@@ -89,6 +131,22 @@ def fastq_iter(file: TextIO) -> Iterator[Tuple[str, str, str, str]]:
         quality_score = file.readline()
         # yield the attributes
         yield (seqid, sequence, quality_score_ident, quality_score)
+
+
+def fastq_iter_chunks(file: TextIO) -> Iterator[List[str]]:
+    """Iterator the emits groups of lines belonging to the same record in a FastQ file"""
+    while True:
+        # read the seqid
+        seqid = file.readline()
+        if not seqid:
+            # there is no new records; EOF
+            break
+        # read the other attributes
+        sequence = file.readline()
+        quality_score_ident = file.readline()
+        quality_score = file.readline()
+        # yield the attributes
+        yield [seqid, sequence, quality_score_ident, quality_score]
 
 
 class PatternTokens:
@@ -275,3 +333,13 @@ class Pattern:
         else:
             # somehow the invalid pattern was passed
             raise ValueError(f"{pattern} is invalid")
+
+
+def parse_pattern_optional(pattern: Optional[str]) -> Optional[Pattern]:
+    """
+    Returns None for None and "", otherwise parses the Pattern
+    """
+    if pattern:
+        return Pattern(pattern)
+    else:
+        return None
