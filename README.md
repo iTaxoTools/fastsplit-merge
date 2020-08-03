@@ -47,11 +47,11 @@ It uncompresses the gzip archives if necessary. The output is written to the sta
 When --seqid or --sequence and either --fasta or --fastq options are given, only the sequence records matching the patterns are written to the output.
 
 ## Filtering
-A PATTERN consists of strings in double quotes, operators 'and', 'or' and 'not' (unquoted) and parentheses. It should be given in single quotes
+A pattern consists of strings in double quotes, operators 'and', 'or' and 'not' (unquoted) and parentheses. It should be given in single quotes for the command-line interface and unquoted for the GUI.
 
 Examples:
-* '"Boophis"'
-* 'not "Boophis"'
-* '"Boophis" and "Madagascar"'
-* '"Boophis" or "Madagascar"'
-* '("Boophis" or "Madagascar") and "Ranomafana"'
+* "Boophis"
+* not "Boophis"
+* "Boophis" and "Madagascar"
+* "Boophis" or "Madagascar"
+* ("Boophis" or "Madagascar") and "Ranomafana"
