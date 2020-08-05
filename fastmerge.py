@@ -91,7 +91,6 @@ def fastmerge_fasta_filter(file_list: Iterable[str], seqid_pattern: Optional[Pat
     Merge the fasta files, extraction all gzip archives.
     Filter records with the given patterns
     """
-    print(sequence_pattern)
     for entry in list_files(file_list):
         # skip the files of the wrong type
         if not ext_gz(entry) in fasta_exts:

@@ -61,17 +61,22 @@ def fastsplit(file_format: str, split_n: Optional[int], maxsize: Optional[int], 
     if not infile_path:
         # raise error, if there is no input file
         raise ValueError("No input file")
-    with open(infile_path) as infile:
+    if infile_path.endswith(".gz"):
+        infile = cast(TextIO, gzip.open(infile_path, mode="rt"))
+    else:
+        infile = open(infile_path)
+    with infile:
         # prepare a valid output template
         if not outfile_template:
             outfile_template = make_template(infile_path)
         elif not '#' in outfile_template:
             outfile_template = make_template(outfile_template)
-        # initialize the input file reader
-        if file_format == 'fasta':
-            chunks = fasta_iter_chunks(infile)
-        elif file_format == 'fastq':
-            chunks = fastq_iter_chunks(infile)
+        if maxsize or split_n:
+            # initialize the input file reader
+            if file_format == 'fasta':
+                chunks = fasta_iter_chunks(infile)
+            elif file_format == 'fastq':
+                chunks = fastq_iter_chunks(infile)
         # call subfunctions
         if maxsize:
             # split by maximum size
@@ -83,6 +88,83 @@ def fastsplit(file_format: str, split_n: Optional[int], maxsize: Optional[int], 
             # if split_n == 6, size == 42 gives maxsize == 7, size == 43 gives maxsize == 8, size 48 gives maxsize 8
             maxsize = (size - 1 + split_n) // split_n
             write_maxsize(chunks, maxsize, compressed, outfile_template)
+        elif seqid_pattern or sequence_pattern:
+            # split by patterns
+            if file_format == 'fasta':
+                fastsplit_fasta_filter(infile, parse_pattern_optional(
+                    seqid_pattern), parse_pattern_optional(sequence_pattern), compressed, outfile_template)
+            elif file_format == 'fastq':
+                fastsplit_fastq_filter(infile, parse_pattern_optional(
+                    seqid_pattern), parse_pattern_optional(sequence_pattern), compressed, outfile_template)
+
+
+def fastsplit_fasta_filter(infile: TextIO, seqid_pattern: Optional[Pattern], sequence_pattern: Optional[Pattern], compressed: bool, outfile_template: str) -> None:
+    """
+    splits a fasta file by patterns
+    """
+    # creates a function to open output files
+    if compressed:
+        def opener(name: str) -> TextIO: return cast(TextIO,
+                                                     gzip.open(name, mode="wt"))
+    else:
+        def opener(name: str) -> TextIO: return open(name, mode="w")
+    # assemples names and open output files
+    accepted_file, rejected_file = map(opener, map(
+        lambda s: outfile_template.replace('#', s), ['accepted', 'rejected']))
+    # create the records' stream
+    records = fasta_iter(infile)
+    # warn about the line breaks
+    line_breaks_warned = False
+    for seqid, sequence in records:
+        if not line_breaks_warned and sequence_pattern and len(sequence) > 1:
+            line_breaks_warned = True
+            warnings.warn(f"The file {infile.name} contains sequences interrupted with line breaks, and the search for sequence motifs will not work reliably in this case - some sequences with the specified motif will likely be missed. Please first transform your file into a fasta file without line breaks interrupting the sequences.")
+        # calculate of the record matches the pattern
+        accepted = (seqid_pattern and seqid_pattern.match(seqid)) or (
+            sequence_pattern and any(map(sequence_pattern.match, sequence)))
+        # choose the output file
+        if accepted:
+            output = accepted_file
+        else:
+            output = rejected_file
+        # write the record to the selected file
+        output.write(seqid)
+        for chunk in sequence:
+            output.write(chunk)
+
+
+def fastsplit_fastq_filter(infile: TextIO, seqid_pattern: Optional[Pattern], sequence_pattern: Optional[Pattern], compressed: bool, outfile_template: str) -> None:
+    """
+    splits a fastq file by patterns
+    """
+    # creates a function to open output files
+    if compressed:
+        def opener(name: str) -> TextIO: return cast(TextIO,
+                                                     gzip.open(name, mode="wt"))
+    else:
+        def opener(name: str) -> TextIO: return open(name, mode="w")
+    # assemples names and open output files
+    accepted_file, rejected_file = map(opener, map(
+        lambda s: outfile_template.replace('#', s), ['accepted', 'rejected']))
+    # create the records' stream
+    records = fastq_iter(infile)
+    # warn about the line breaks
+    line_breaks_warned = False
+    for seqid, sequence, *quality in records:
+        if not line_breaks_warned and sequence_pattern and len(sequence) > 1:
+            line_breaks_warned = True
+            warnings.warn(f"The file {infile.name} contains sequences interrupted with line breaks, and the search for sequence motifs will not work reliably in this case - some sequences with the specified motif will likely be missed. Please first transform your file into a fasta file without line breaks interrupting the sequences.")
+        # calculate of the record matches the pattern
+        accepted = (seqid_pattern and seqid_pattern.match(seqid)) or (
+            sequence_pattern and sequence_pattern.match(sequence))
+        # choose the output file
+        if accepted:
+            output = accepted_file
+        else:
+            output = rejected_file
+        # write the record to the selected file
+        for line in [seqid, sequence, *quality]:
+            output.write(line)
 
 
 argparser = argparse.ArgumentParser()
@@ -98,6 +180,11 @@ split_group.add_argument('--split_n', type=int,
                          help='number of files to split into')
 split_group.add_argument('--maxsize', type=parse_size,
                          help='Maximum size of output file')
+split_group.add_argument('--seqid', metavar='PATTERN',
+                         help='split the records that match the sequence identifier pattern')
+split_group.add_argument('--sequence', metavar='PATTERN',
+                         help='split the records that match the sequence motif pattern')
+
 
 argparser.add_argument('--compressed', action='store_true',
                        help='Compress output files with gzip')
@@ -113,8 +200,8 @@ if not args.format:
 else:
     try:
         with warnings.catch_warnings(record=True) as warns:
-            fastsplit(args.format, args.split_n, args.maxsize, None,
-                      None, args.infile, args.compressed, args.outfile)
+            fastsplit(args.format, args.split_n, args.maxsize, args.seqid,
+                      args.sequence, args.infile, args.compressed, args.outfile)
             for w in warns:
                 print(w.message)
     except ValueError as ex:
