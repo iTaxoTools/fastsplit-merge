@@ -218,19 +218,22 @@ def launch_gui() -> None:
     # pattern entry widgets
     seqid_pattern = tk.StringVar()
     seqid_pattern_lbl = ttk.Label(
-        bottom_frame, text="Sequence identifier pattern")
+        bottom_frame, text="Sequence identifier pattern¹")
     seqid_pattern_entry = ttk.Entry(bottom_frame, textvariable=seqid_pattern)
     seqid_pattern_entry.configure(state=tkinter.DISABLED)
     sequence_pattern = tk.StringVar()
     sequence_pattern_lbl = ttk.Label(
-        bottom_frame, text="Sequence motif pattern")
+        bottom_frame, text="Sequence motif pattern¹")
     sequence_pattern_entry = ttk.Entry(
         bottom_frame, textvariable=sequence_pattern)
+    pattern_hint_lbl = ttk.Label(mainframe,
+                                 text="\t¹The search words should be in double quotes")
     # they are initially disabled
     seqid_pattern_lbl.configure(state=tkinter.DISABLED)
     seqid_pattern_entry.configure(state=tkinter.DISABLED)
     sequence_pattern_lbl.configure(state=tkinter.DISABLED)
     sequence_pattern_entry.configure(state=tkinter.DISABLED)
+    pattern_hint_lbl.configure(state=tkinter.DISABLED)
 
     # methods to enable and disable the patterns
     def enable_patterns() -> None:
@@ -238,12 +241,14 @@ def launch_gui() -> None:
         seqid_pattern_entry.configure(state=tkinter.NORMAL)
         sequence_pattern_lbl.configure(state=tkinter.NORMAL)
         sequence_pattern_entry.configure(state=tkinter.NORMAL)
+        pattern_hint_lbl.configure(state=tkinter.NORMAL)
 
     def disable_patterns() -> None:
         seqid_pattern_lbl.configure(state=tkinter.DISABLED)
         seqid_pattern_entry.configure(state=tkinter.DISABLED)
         sequence_pattern_lbl.configure(state=tkinter.DISABLED)
         sequence_pattern_entry.configure(state=tkinter.DISABLED)
+        pattern_hint_lbl.configure(state=tkinter.DISABLED)
 
     # configure enabling and disabling of patterns
     r_any.configure(command=disable_patterns)
@@ -258,8 +263,9 @@ def launch_gui() -> None:
     # place the pattern entries
     seqid_pattern_lbl.grid(row=0, column=0)
     seqid_pattern_entry.grid(row=0, column=1, sticky='nsew')
-    sequence_pattern_lbl.grid(row=1, column=0, sticky='nsew')
+    sequence_pattern_lbl.grid(row=1, column=0)
     sequence_pattern_entry.grid(row=1, column=1, sticky='nsew')
+    pattern_hint_lbl.grid(row=3, column=0, sticky='w')
 
     # output file entry
     output_file_lbl = ttk.Label(top_frame, text="Output file")
