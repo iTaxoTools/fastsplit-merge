@@ -5,6 +5,10 @@ from lib.utils import *
 from typing import Optional, List, cast, BinaryIO
 import warnings
 import sys
+import tkinter as tk
+import tkinter.ttk as ttk
+import tkinter.filedialog
+import tkinter.messagebox
 
 
 def parse_size(s: str) -> Optional[int]:
@@ -110,7 +114,7 @@ def fastsplit_fasta_filter(infile: TextIO, seqid_pattern: Optional[Pattern], seq
         def opener(name: str) -> TextIO: return open(name, mode="w")
     # assemples names and open output files
     accepted_file, rejected_file = map(opener, map(
-        lambda s: outfile_template.replace('#', s), ['accepted', 'rejected']))
+        lambda s: outfile_template.replace('#', s), ['_accepted', '_rejected']))
     # create the records' stream
     records = fasta_iter(infile)
     # warn about the line breaks
@@ -145,15 +149,10 @@ def fastsplit_fastq_filter(infile: TextIO, seqid_pattern: Optional[Pattern], seq
         def opener(name: str) -> TextIO: return open(name, mode="w")
     # assemples names and open output files
     accepted_file, rejected_file = map(opener, map(
-        lambda s: outfile_template.replace('#', s), ['accepted', 'rejected']))
+        lambda s: outfile_template.replace('#', s), ['_accepted', '_rejected']))
     # create the records' stream
     records = fastq_iter(infile)
-    # warn about the line breaks
-    line_breaks_warned = False
     for seqid, sequence, *quality in records:
-        if not line_breaks_warned and sequence_pattern and len(sequence) > 1:
-            line_breaks_warned = True
-            warnings.warn(f"The file {infile.name} contains sequences interrupted with line breaks, and the search for sequence motifs will not work reliably in this case - some sequences with the specified motif will likely be missed. Please first transform your file into a fasta file without line breaks interrupting the sequences.")
         # calculate of the record matches the pattern
         accepted = (seqid_pattern and seqid_pattern.match(seqid)) or (
             sequence_pattern and sequence_pattern.match(sequence))
@@ -165,6 +164,160 @@ def fastsplit_fastq_filter(infile: TextIO, seqid_pattern: Optional[Pattern], seq
         # write the record to the selected file
         for line in [seqid, sequence, *quality]:
             output.write(line)
+
+
+def launch_gui() -> None:
+    # the base of the gui
+    root = tk.Tk()
+    root.title("Fastsplit")
+    mainframe = ttk.Frame(root, padding=5)
+    top_frame = ttk.Frame(mainframe)
+    middle_frame = ttk.Frame(mainframe)
+    bottom_frame = ttk.Frame(mainframe)
+
+    # create labels
+    infile_lbl = ttk.Label(top_frame, text="Input file")
+    outfile_lbl = ttk.Label(top_frame, text="Output files' template")
+    pattern_hint_lbl = ttk.Label(mainframe,
+                                 text="\t¹The search words should be in double quotes")
+
+    # create the entries
+    infile_var = tk.StringVar()
+    infile_entry = ttk.Entry(top_frame, textvariable=infile_var)
+    outfile_var = tk.StringVar()
+    outfile_entry = ttk.Entry(top_frame, textvariable=outfile_var)
+    maxsize_var = tk.StringVar()
+    maxsize_entry = ttk.Entry(
+        bottom_frame, textvariable=maxsize_var, validate='key')
+    split_n_var = tk.StringVar()
+    split_n_entry = ttk.Entry(
+        bottom_frame, textvariable=split_n_var, validate='key')
+    seqid_pattern_var = tk.StringVar()
+    seqid_pattern_entry = ttk.Entry(
+        bottom_frame, textvariable=seqid_pattern_var)
+    sequence_pattern_var = tk.StringVar()
+    sequence_pattern_entry = ttk.Entry(
+        bottom_frame, textvariable=sequence_pattern_var)
+
+    # validation for maxsize and split_n entries
+    def validate_numbers() -> bool:
+        maxsize = maxsize_var.get()
+        split_n = split_n_var.get()
+        return (not maxsize or maxsize.isnumeric()) or (not split_n or split_n.isnumeric())
+
+    # set the validation
+    maxsize_entry.configure(validatecommand=validate_numbers)
+    split_n_entry.configure(validatecommand=validate_numbers)
+
+    # create the radiobuttons
+    format_var = tk.StringVar(value='fasta')
+    fasta_rbtn = ttk.Radiobutton(
+        middle_frame, text='fasta', variable=format_var, value='fasta')
+    fastq_rbtn = ttk.Radiobutton(
+        middle_frame, text='fastq', variable=format_var, value='fastq')
+    option_var = tk.StringVar(value='maxsize')
+    maxsize_rbtn = ttk.Radiobutton(
+        bottom_frame, text='Maximum size', variable=option_var, value='maxsize')
+    split_n_rbtn = ttk.Radiobutton(
+        bottom_frame, text='Number of output files', variable=option_var, value='split_n')
+    seqid_rbtn = ttk.Radiobutton(
+        bottom_frame, text='Sequence identifier pattern¹', variable=option_var, value='seqid')
+    sequence_rbtn = ttk.Radiobutton(
+        bottom_frame, text='Sequence motif pattern¹', variable=option_var, value='sequence')
+
+    # create the compress checkbutton
+    compressed_var = tk.BooleanVar()
+    compressed_checkbutton = ttk.Checkbutton(
+        top_frame, text="Compress output", variable=compressed_var)
+
+    # commands for the buttons
+    def browse_infile() -> None:
+        infile_var.set(os.path.relpath(tk.filedialog.askopenfilename()))
+
+    def browse_outfile() -> None:
+        outfile_var.set(os.path.relpath(tk.filedialog.asksaveasfilename()))
+
+    def fastsplit_gui() -> None:
+        maxsize = None
+        split_n = None
+        seqid_pattern = None
+        sequence_pattern = None
+        option = option_var.get()
+
+        if option == 'maxsize':
+            maxsize = parse_size(maxsize_var.get())
+        elif option == 'split_n':
+            split_n = int(split_n_var.get())
+        elif option == 'seqid':
+            seqid_pattern = seqid_pattern_var.get()
+        elif option == 'sequence':
+            sequence_pattern = sequence_pattern_var.get()
+
+        try:
+            # catch all warnings
+            with warnings.catch_warnings(record=True) as warns:
+                fastsplit(format_var.get(), split_n, maxsize, seqid_pattern, sequence_pattern,
+                          infile_var.get(), compressed_var.get(), outfile_var.get())
+            # display the warnings generated during the conversion
+            for w in warns:
+                tkinter.messagebox.showwarning("Warning", str(w.message))
+            # notify the user that the converions is finished
+            tkinter.messagebox.showinfo(
+                "Done.", "The splitting has been completed")
+        # show the ValueErrors and FileNotFoundErrors
+        except ValueError as ex:
+            tkinter.messagebox.showerror("Error", str(ex))
+        except FileNotFoundError as ex:
+            tkinter.messagebox.showerror("Error", str(ex))
+
+    # create buttons
+    infile_browse_btn = ttk.Button(
+        top_frame, text="Browse", command=browse_infile)
+    outfile_browse_btn = ttk.Button(
+        top_frame, text="Browse", command=browse_outfile)
+    split_btn = ttk.Button(top_frame, text="Split", command=fastsplit_gui)
+
+    # populate the top frame
+    infile_lbl.grid(row=0, column=0, sticky='w')
+    infile_entry.grid(row=1, column=0, sticky='we')
+    infile_browse_btn.grid(row=1, column=1, sticky='w')
+    outfile_lbl.grid(row=2, column=0, sticky='w')
+    outfile_entry.grid(row=3, column=0, sticky='we')
+    outfile_browse_btn.grid(row=3, column=1, sticky='w')
+    split_btn.grid(row=3, column=2, sticky='e')
+
+    # populate the middle frame
+    fasta_rbtn.grid(row=0, column=0)
+    fastq_rbtn.grid(row=0, column=1)
+
+    # populate the bottom frame
+    maxsize_rbtn.grid(row=0, column=0, sticky='w')
+    maxsize_entry.grid(row=0, column=1, sticky='we')
+    split_n_rbtn.grid(row=1, column=0, sticky='w')
+    split_n_entry.grid(row=1, column=1, sticky='we')
+    seqid_rbtn.grid(row=2, column=0, sticky='w')
+    seqid_pattern_entry.grid(row=2, column=1, sticky='we')
+    sequence_rbtn.grid(row=3, column=0, sticky='w')
+    sequence_pattern_entry.grid(row=3, column=1, sticky='we')
+
+    # populate the main frame
+    top_frame.grid(row=0, column=0, sticky='nsew')
+    middle_frame.grid(row=1, column=0, sticky='nsew')
+    bottom_frame.grid(row=2, column=0, sticky='nsew')
+    pattern_hint_lbl.grid(row=3, column=0, sticky='w')
+
+    mainframe.grid(row=0, column=0, sticky='nsew')
+
+    # configure the resizing
+    root.rowconfigure(0, weight=1)
+    root.columnconfigure(0, weight=1)
+    mainframe.columnconfigure(0, weight=1)
+    top_frame.columnconfigure(0, weight=1)
+    top_frame.columnconfigure(2, weight=5)
+    middle_frame.columnconfigure(2, weight=1)
+    bottom_frame.columnconfigure(1, weight=1)
+
+    root.mainloop()
 
 
 argparser = argparse.ArgumentParser()
@@ -195,8 +348,7 @@ argparser.add_argument('outfile', nargs='?', help='outfile file template')
 args = argparser.parse_args()
 
 if not args.format:
-    pass
-    # launch_gui()
+    launch_gui()
 else:
     try:
         with warnings.catch_warnings(record=True) as warns:

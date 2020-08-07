@@ -42,7 +42,7 @@ def template_files(template: str, mode: str, compressed: bool) -> Generator[IO[A
     count = 0
     while True:
         # generate new file name
-        filename = root + str(count) + ext
+        filename = root + '_' + str(count) + ext
         count += 1
         # open the file, possibly with gzip
         if compressed:

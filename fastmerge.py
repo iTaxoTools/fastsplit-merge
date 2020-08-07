@@ -217,22 +217,17 @@ def launch_gui() -> None:
     # pattern entry widgets
     seqid_pattern = tk.StringVar()
     seqid_pattern_lbl = ttk.Label(
-        bottom_frame, text="Sequence identifier pattern¹")
-    seqid_pattern_entry = ttk.Entry(bottom_frame, textvariable=seqid_pattern)
-    seqid_pattern_entry.configure(state=tkinter.DISABLED)
+        bottom_frame, text="Sequence identifier pattern¹", state=tk.DISABLED)
+    seqid_pattern_entry = ttk.Entry(
+        bottom_frame, textvariable=seqid_pattern, state=tk.DISABLED)
     sequence_pattern = tk.StringVar()
     sequence_pattern_lbl = ttk.Label(
-        bottom_frame, text="Sequence motif pattern¹")
+        bottom_frame, text="Sequence motif pattern¹", state=tk.DISABLED)
     sequence_pattern_entry = ttk.Entry(
-        bottom_frame, textvariable=sequence_pattern)
+        bottom_frame, textvariable=sequence_pattern, state=tk.DISABLED)
     pattern_hint_lbl = ttk.Label(mainframe,
-                                 text="\t¹The search words should be in double quotes")
+                                 text="\t¹The search words should be in double quotes", state=tk.DISABLED)
     # they are initially disabled
-    seqid_pattern_lbl.configure(state=tkinter.DISABLED)
-    seqid_pattern_entry.configure(state=tkinter.DISABLED)
-    sequence_pattern_lbl.configure(state=tkinter.DISABLED)
-    sequence_pattern_entry.configure(state=tkinter.DISABLED)
-    pattern_hint_lbl.configure(state=tkinter.DISABLED)
 
     # methods to enable and disable the patterns
     def enable_patterns() -> None:
