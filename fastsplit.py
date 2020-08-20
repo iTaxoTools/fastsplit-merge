@@ -21,7 +21,7 @@ def parse_size(s: str) -> Optional[int]:
         power = dict(b=0, k=1, m=2, g=3)[suffix.casefold()]
     except KeyError:
         return None
-    return int(num) * (1024 ** power)
+    return round(float(num) * (1024 ** power))
 
 
 def list_bytes(chunk: List[str]) -> bytes:

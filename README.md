@@ -71,7 +71,8 @@ Fastsplit reads the input file and splits into files according to the options.
 Currently supported formats are FASTA and FastQ.
 The spliting criteria are:
 * Number of output parts (`split_n`)
-* Limit on maximum size of parts (`maxsize`)
+* Limit on maximum size of parts (`maxsize`). The size is specified in in the format `{number}{unit}` where unit is one of 'bBkKmMgG'.
+    Examples: 165b (165 bytes), 56K (56 kilobytes), 34M (34 Megabytes), 1.5g (1.5 Gigabytes)
 * Split into two files: one with records matching a pattern and one with the remaining records:
     * Match the sequence identifier (`seqid`)
     * Match the motifs in the sequence (`sequence`)

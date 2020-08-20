@@ -20,12 +20,17 @@ def make_template(filename: str) -> str:
     Insert '#' before the extension, generates the input for template_filenames
     """
     ext = ""
+    # collect all the extension
     while True:
         filename, ext_part = os.path.splitext(filename)
         if not ext_part:
             break
         else:
             ext = ext_part + ext
+    if not ext:
+        ext = ".fas"
+    elif ext == ".":
+        ext = ""
     return filename + '#' + ext
 
 
