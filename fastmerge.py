@@ -157,6 +157,7 @@ def launch_gui() -> None:
     """
     # initializing the gui
     root = tk.Tk()
+    root.title = "fastmerge"
     mainframe = ttk.Frame(root, padding=5)
     mainframe.grid(column=0, row=0, sticky='nsew')
 
@@ -284,7 +285,8 @@ def launch_gui() -> None:
         elif format_var.get() == 'fastq':
             file_types = fastq_exts
         if compress_output.get():
-            output = cast(TextIO, gzip.open(output_file.get(), mode="wt"))
+            output = cast(TextIO, gzip.open(
+                output_file.get() + ".gz", mode="wt"))
         else:
             output = open(output_file.get(), mode="w")
 
