@@ -177,13 +177,22 @@ def launch_gui() -> None:
 
     # browse files button command
     def browse_files() -> None:
-        file_list_box.insert('end', *map(
-            os.path.relpath, tk.filedialog.askopenfilenames()))
+        if (newpaths := list(tk.filedialog.askopenfilenames())):
+            for i, newpath in enumerate(newpaths):
+                try:
+                    newpaths[i] = os.path.relpath(newpath)
+                except:
+                    newpaths[i] = os.path.abspath(newpath)
+            file_list_box.insert('end', *newpaths)
 
     # browse directory button command
     def browse_directory() -> None:
-        file_list_box.insert('end', os.path.relpath(
-            tk.filedialog.askdirectory()))
+        if (newpath := tk.filedialog.askdirectory()):
+            try:
+                newpath = os.path.relpath(newpath)
+            except:
+                newpath = os.path.abspath(newpath)
+            file_list_box.insert('end', newpath)
 
     # remove file button command
     def remove_file() -> None:
@@ -310,7 +319,12 @@ def launch_gui() -> None:
     # command for the output browse button
 
     def output_browse() -> None:
-        output_file.set(os.path.relpath(tk.filedialog.asksaveasfilename()))
+        if (newpath := tk.filedialog.asksaveasfilename()):
+            try:
+                newpath = os.path.relpath(newpath)
+            except:
+                newpath = os.path.abspath(newpath)
+            output_file.set(newpath)
 
     # the output browse button
     browse_output = ttk.Button(
