@@ -1,5 +1,5 @@
 # fastsplit-merge
-fastmerge and fastsplit are simple tools to merge and split large test files, in particular intended for merging/splitting fasta and fastq files. Include options to specify search terms in sequence titles and sequence motifs to include/exclude sequences for splitting/merging.
+fastmerge and fastsplit are simple tools to merge and split large text files, in particular intended for merging/splitting fasta and fastq files. The tools include options to specify search terms in sequence titles and sequence motifs to include/exclude sequences for splitting/merging.
 
 ## Installation
 Installation is currently not intended. Downloading should be enough
