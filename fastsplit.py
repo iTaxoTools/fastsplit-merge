@@ -225,6 +225,8 @@ def launch_gui() -> None:
         middle_frame, text='fasta', variable=format_var, value='fasta')
     fastq_rbtn = ttk.Radiobutton(
         middle_frame, text='fastq', variable=format_var, value='fastq')
+    text_rbtn = ttk.Radiobutton(
+            middle_frame, text='text', variable=format_var, value='text')
     option_var = tk.StringVar(value='maxsize')
     maxsize_rbtn = ttk.Radiobutton(
         bottom_frame, text='Maximum size', variable=option_var, value='maxsize')
@@ -234,6 +236,16 @@ def launch_gui() -> None:
         bottom_frame, text='Sequence identifier pattern¹', variable=option_var, value='seqid')
     sequence_rbtn = ttk.Radiobutton(
         bottom_frame, text='Sequence motif pattern¹', variable=option_var, value='sequence')
+
+    def pattern_radio_buttons_state(name1: str, name2: str, op: str) -> None:
+        if format_var.get() == 'text':
+            for widget in [seqid_rbtn, seqid_pattern_entry, sequence_rbtn, sequence_pattern_entry]:
+                widget.configure(state='disabled')
+        else:
+            for widget in [seqid_rbtn, seqid_pattern_entry, sequence_rbtn, sequence_pattern_entry]:
+                widget.configure(state='normal')
+
+    format_var.trace_add("write", pattern_radio_buttons_state)
 
     # create the compress checkbutton
     compressed_var = tk.BooleanVar()
@@ -311,6 +323,7 @@ def launch_gui() -> None:
     # populate the middle frame
     fasta_rbtn.grid(row=0, column=0)
     fastq_rbtn.grid(row=0, column=1)
+    text_rbtn.grid(row=0, column=2)
 
     # populate the bottom frame
     maxsize_rbtn.grid(row=0, column=0, sticky='w')
@@ -324,7 +337,7 @@ def launch_gui() -> None:
 
     # populate the main frame
     top_frame.grid(row=0, column=0, sticky='nsew')
-    middle_frame.grid(row=1, column=0, sticky='nsew')
+    middle_frame.grid(row=1, column=0, sticky='nsw')
     bottom_frame.grid(row=2, column=0, sticky='nsew')
     pattern_hint_lbl.grid(row=3, column=0, sticky='w')
 
