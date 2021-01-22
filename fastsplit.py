@@ -7,7 +7,7 @@ import warnings
 import sys
 import tkinter as tk
 import tkinter.ttk as ttk
-import tkinter.filedialog
+import tkinter.filedialog as tkfiledialog
 import tkinter.messagebox
 
 
@@ -81,9 +81,14 @@ def fastsplit(file_format: str, split_n: Optional[int], maxsize: Optional[int], 
                 chunks = fasta_iter_chunks(infile)
             elif file_format == 'fastq':
                 chunks = fastq_iter_chunks(infile)
+            else:
+                chunks = None
+        else:
+            chunks = None
         # call subfunctions
         if maxsize:
             # split by maximum size
+            assert(chunks is not None)
             write_maxsize(chunks, maxsize, compressed, outfile_template)
         elif split_n:
             # split by number of files
@@ -91,6 +96,7 @@ def fastsplit(file_format: str, split_n: Optional[int], maxsize: Optional[int], 
             size = os.stat(infile_path).st_size
             # if split_n == 6, size == 42 gives maxsize == 7, size == 43 gives maxsize == 8, size 48 gives maxsize 8
             maxsize = (size - 1 + split_n) // split_n
+            assert(chunks is not None)
             write_maxsize(chunks, maxsize, compressed, outfile_template)
         elif seqid_pattern or sequence_pattern:
             # split by patterns
@@ -232,7 +238,8 @@ def launch_gui() -> None:
 
     # commands for the buttons
     def browse_infile() -> None:
-        if (newpath := tk.filedialog.askopenfilename()):
+        newpath: Optional[str] = tkfiledialog.askopenfilename()
+        if (newpath):
             try:
                 newpath = os.path.relpath(newpath)
             except:
@@ -240,7 +247,8 @@ def launch_gui() -> None:
             infile_var.set(newpath)
 
     def browse_outfile() -> None:
-        if (newpath := tk.filedialog.asksaveasfilename()):
+        newpath: Optional[str] = tkfiledialog.asksaveasfilename()
+        if (newpath):
             try:
                 newpath = os.path.relpath(newpath)
             except:
