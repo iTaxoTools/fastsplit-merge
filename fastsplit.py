@@ -81,6 +81,8 @@ def fastsplit(file_format: str, split_n: Optional[int], maxsize: Optional[int], 
                 chunks = fasta_iter_chunks(infile)
             elif file_format == 'fastq':
                 chunks = fastq_iter_chunks(infile)
+            elif file_format == 'text':
+                chunks = map(lambda s: [s], infile)
             else:
                 chunks = None
         else:
@@ -106,6 +108,8 @@ def fastsplit(file_format: str, split_n: Optional[int], maxsize: Optional[int], 
             elif file_format == 'fastq':
                 fastsplit_fastq_filter(infile, parse_pattern_optional(
                     seqid_pattern), parse_pattern_optional(sequence_pattern), compressed, outfile_template)
+            else:
+                raise ValueError("Pattern are not supported for text files")
 
 
 def fastsplit_fasta_filter(infile: TextIO, seqid_pattern: Optional[Pattern], sequence_pattern: Optional[Pattern], compressed: bool, outfile_template: str) -> None:
@@ -345,6 +349,8 @@ format_group.add_argument('--fasta', dest='format', action='store_const',
                           const='fasta', help='Input file is a fasta file')
 format_group.add_argument('--fastq', dest='format', action='store_const',
                           const='fastq', help='Input file is a fastq file')
+format_group.add_argument('--text', dest='format', action='store_const',
+                          const='text', help='Input file is a text file')
 
 split_group = argparser.add_mutually_exclusive_group()
 split_group.add_argument('--split_n', type=int,
