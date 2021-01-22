@@ -8,7 +8,7 @@ import gzip
 import warnings
 import sys
 import tkinter as tk
-import tkinter.filedialog
+import tkinter.filedialog as tkfiledialog
 import tkinter.messagebox
 import ast
 from tkinter import ttk
@@ -170,14 +170,15 @@ def launch_gui() -> None:
     file_list_lbl = ttk.Label(
         top_frame, text="List of input files and directories")
     file_list_var = tk.StringVar()
-    file_list_box = tk.Listbox(top_frame, listvar=file_list_var, height=10)
+    file_list_box = tk.Listbox(top_frame, listvariable=file_list_var, height=10)
     file_scroll = ttk.Scrollbar(
         top_frame, orient=tk.VERTICAL, command=file_list_box.yview)
     file_list_box.configure(yscrollcommand=file_scroll.set)
 
     # browse files button command
     def browse_files() -> None:
-        if (newpaths := list(tk.filedialog.askopenfilenames())):
+        newpaths = list(tkfiledialog.askopenfilenames())
+        if (newpaths):
             for i, newpath in enumerate(newpaths):
                 try:
                     newpaths[i] = os.path.relpath(newpath)
@@ -187,7 +188,8 @@ def launch_gui() -> None:
 
     # browse directory button command
     def browse_directory() -> None:
-        if (newpath := tk.filedialog.askdirectory()):
+        newpath: Optional[str] = tkfiledialog.askdirectory()
+        if (newpath):
             try:
                 newpath = os.path.relpath(newpath)
             except:
@@ -241,18 +243,18 @@ def launch_gui() -> None:
 
     # methods to enable and disable the patterns
     def enable_patterns() -> None:
-        seqid_pattern_lbl.configure(state=tkinter.NORMAL)
-        seqid_pattern_entry.configure(state=tkinter.NORMAL)
-        sequence_pattern_lbl.configure(state=tkinter.NORMAL)
-        sequence_pattern_entry.configure(state=tkinter.NORMAL)
-        pattern_hint_lbl.configure(state=tkinter.NORMAL)
+        seqid_pattern_lbl.configure(state='normal')
+        seqid_pattern_entry.configure(state='normal')
+        sequence_pattern_lbl.configure(state='normal')
+        sequence_pattern_entry.configure(state='normal')
+        pattern_hint_lbl.configure(state='normal')
 
     def disable_patterns() -> None:
-        seqid_pattern_lbl.configure(state=tkinter.DISABLED)
-        seqid_pattern_entry.configure(state=tkinter.DISABLED)
-        sequence_pattern_lbl.configure(state=tkinter.DISABLED)
-        sequence_pattern_entry.configure(state=tkinter.DISABLED)
-        pattern_hint_lbl.configure(state=tkinter.DISABLED)
+        seqid_pattern_lbl.configure(state='disabled')
+        seqid_pattern_entry.configure(state='disabled')
+        sequence_pattern_lbl.configure(state='disabled')
+        sequence_pattern_entry.configure(state='disabled')
+        pattern_hint_lbl.configure(state='disabled')
 
     # configure enabling and disabling of patterns
     r_any.configure(command=disable_patterns)
@@ -319,7 +321,8 @@ def launch_gui() -> None:
     # command for the output browse button
 
     def output_browse() -> None:
-        if (newpath := tk.filedialog.asksaveasfilename()):
+        newpath: Optional[str] = tkfiledialog.asksaveasfilename()
+        if (newpath):
             try:
                 newpath = os.path.relpath(newpath)
             except:
