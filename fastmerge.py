@@ -10,6 +10,7 @@ import sys
 import tkinter as tk
 import tkinter.filedialog as tkfiledialog
 import tkinter.messagebox
+import tkinter.font as tkfont
 import ast
 from tkinter import ttk
 
@@ -157,9 +158,32 @@ def launch_gui() -> None:
     """
     # initializing the gui
     root = tk.Tk()
-    root.title = "fastmerge"
+    root.title("Fastmerge")
+    root.rowconfigure(2, weight=1)
+    if os.name == "nt":
+        root.wm_iconbitmap(os.path.join('data', 'Fastmerge_icon.ico'))
     mainframe = ttk.Frame(root, padding=5)
-    mainframe.grid(column=0, row=0, sticky='nsew')
+    mainframe.grid(column=0, row=2, sticky='nsew')
+
+    style = ttk.Style()
+    style.configure("MergeButton.TButton", background="blue")
+
+    # banner frame
+    banner_frame = ttk.Frame(root)
+    banner_frame.columnconfigure(1, weight=1)
+    banner_img = tk.PhotoImage(file=os.path.join(
+        "data", "iTaxoTools Digital linneaeus MICROLOGO.png"))
+    banner_image = ttk.Label(banner_frame, image=banner_img)
+    banner_image.grid(row=0, column=3, rowspan=3, sticky='nse')
+    program_name = ttk.Label(
+        banner_frame, text="Fastmerge", font=tkfont.Font(size=20))
+    program_name.grid(row=1, column=0, sticky='sw')
+    program_description = ttk.Label(
+        banner_frame, text="Merge multiple sequences or text files into a single large file")
+    program_description.grid(row=2, column=0, sticky='sw')
+    banner_frame.grid(column=0, row=0, sticky='nsew')
+
+    ttk.Separator(root, orient='horizontal').grid(column=0, row=1, sticky='we')
 
     # frames for different parts
     top_frame = ttk.Frame(mainframe)
@@ -334,16 +358,19 @@ def launch_gui() -> None:
         top_frame, text="Browse output file", command=output_browse)
 
     # place the output group
-    output_file_lbl.grid(row=0, column=3)
-    output_file_entry.grid(row=1, column=3)
-    browse_output.grid(row=1, column=4)
-    compress_output_chk.grid(row=2, column=3)
+    output_file_lbl.grid(row=0, column=4)
+    output_file_entry.grid(row=1, column=4)
+    browse_output.grid(row=1, column=5)
+    compress_output_chk.grid(row=2, column=4)
 
     # the merge button
-    merge_btn = ttk.Button(middle_frame, text="Merge", command=gui_merge)
+    merge_btn = ttk.Button(top_frame, text="Merge", command=gui_merge, style="MergeButton.TButton")
 
     # place the merge button
-    merge_btn.grid(row=0, column=3, sticky='e')
+    merge_btn.grid(row=4, column=0, columnspan=6)
+
+    # some spacing between input and output widget in the top_frame
+    ttk.Label(top_frame).grid(row=0, column=3, padx=20)
 
     # place the frames
     top_frame.grid(row=0, column=0, sticky='nsew')
@@ -356,7 +383,7 @@ def launch_gui() -> None:
     mainframe.rowconfigure(0, weight=1)
     mainframe.columnconfigure(0, weight=1)
     top_frame.rowconfigure(3, weight=1)
-    top_frame.columnconfigure(0, weight=1)
+    top_frame.columnconfigure(3, weight=1)
     middle_frame.columnconfigure(3, weight=1)
     bottom_frame.columnconfigure(1, weight=1)
 
