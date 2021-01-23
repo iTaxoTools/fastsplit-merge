@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import TextIO, Tuple, Iterator, List, Optional, Any, Union, IO, AnyStr, Generator
+from typing import TextIO, Tuple, Iterator, List, Optional, Any, Union, IO, AnyStr, Generator, cast
 import re
 import os
 import gzip
@@ -34,7 +34,7 @@ def make_template(filename: str) -> str:
     return filename + '#' + ext
 
 
-def template_files(template: str, mode: str, compressed: bool) -> Generator[IO[AnyStr], str, None]:
+def template_files(template: str, mode: str, compressed: bool) -> Generator[IO[Any], str, None]:
     """
     Generates files based on the given template.
     They are open with the given 'mode'.
@@ -51,7 +51,7 @@ def template_files(template: str, mode: str, compressed: bool) -> Generator[IO[A
         count += 1
         # open the file, possibly with gzip
         if compressed:
-            file = gzip.open(filename, mode=mode)
+            file = cast(TextIO, gzip.open(filename, mode=mode))
         else:
             file = open(filename, mode=mode)
         # yield the file

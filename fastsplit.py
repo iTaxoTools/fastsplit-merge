@@ -7,7 +7,7 @@ import warnings
 import sys
 import tkinter as tk
 import tkinter.ttk as ttk
-import tkinter.filedialog
+import tkinter.filedialog as tkfiledialog
 import tkinter.messagebox
 
 
@@ -81,9 +81,16 @@ def fastsplit(file_format: str, split_n: Optional[int], maxsize: Optional[int], 
                 chunks = fasta_iter_chunks(infile)
             elif file_format == 'fastq':
                 chunks = fastq_iter_chunks(infile)
+            elif file_format == 'text':
+                chunks = map(lambda s: [s], infile)
+            else:
+                chunks = None
+        else:
+            chunks = None
         # call subfunctions
         if maxsize:
             # split by maximum size
+            assert(chunks is not None)
             write_maxsize(chunks, maxsize, compressed, outfile_template)
         elif split_n:
             # split by number of files
@@ -91,6 +98,7 @@ def fastsplit(file_format: str, split_n: Optional[int], maxsize: Optional[int], 
             size = os.stat(infile_path).st_size
             # if split_n == 6, size == 42 gives maxsize == 7, size == 43 gives maxsize == 8, size 48 gives maxsize 8
             maxsize = (size - 1 + split_n) // split_n
+            assert(chunks is not None)
             write_maxsize(chunks, maxsize, compressed, outfile_template)
         elif seqid_pattern or sequence_pattern:
             # split by patterns
@@ -100,6 +108,8 @@ def fastsplit(file_format: str, split_n: Optional[int], maxsize: Optional[int], 
             elif file_format == 'fastq':
                 fastsplit_fastq_filter(infile, parse_pattern_optional(
                     seqid_pattern), parse_pattern_optional(sequence_pattern), compressed, outfile_template)
+            else:
+                raise ValueError("Pattern are not supported for text files")
 
 
 def fastsplit_fasta_filter(infile: TextIO, seqid_pattern: Optional[Pattern], sequence_pattern: Optional[Pattern], compressed: bool, outfile_template: str) -> None:
@@ -215,6 +225,8 @@ def launch_gui() -> None:
         middle_frame, text='fasta', variable=format_var, value='fasta')
     fastq_rbtn = ttk.Radiobutton(
         middle_frame, text='fastq', variable=format_var, value='fastq')
+    text_rbtn = ttk.Radiobutton(
+            middle_frame, text='text', variable=format_var, value='text')
     option_var = tk.StringVar(value='maxsize')
     maxsize_rbtn = ttk.Radiobutton(
         bottom_frame, text='Maximum size', variable=option_var, value='maxsize')
@@ -225,6 +237,16 @@ def launch_gui() -> None:
     sequence_rbtn = ttk.Radiobutton(
         bottom_frame, text='Sequence motif pattern¹', variable=option_var, value='sequence')
 
+    def pattern_radio_buttons_state(name1: str, name2: str, op: str) -> None:
+        if format_var.get() == 'text':
+            for widget in [seqid_rbtn, seqid_pattern_entry, sequence_rbtn, sequence_pattern_entry]:
+                widget.configure(state='disabled')
+        else:
+            for widget in [seqid_rbtn, seqid_pattern_entry, sequence_rbtn, sequence_pattern_entry]:
+                widget.configure(state='normal')
+
+    format_var.trace_add("write", pattern_radio_buttons_state)
+
     # create the compress checkbutton
     compressed_var = tk.BooleanVar()
     compressed_checkbutton = ttk.Checkbutton(
@@ -232,7 +254,8 @@ def launch_gui() -> None:
 
     # commands for the buttons
     def browse_infile() -> None:
-        if (newpath := tk.filedialog.askopenfilename()):
+        newpath: Optional[str] = tkfiledialog.askopenfilename()
+        if (newpath):
             try:
                 newpath = os.path.relpath(newpath)
             except:
@@ -240,7 +263,8 @@ def launch_gui() -> None:
             infile_var.set(newpath)
 
     def browse_outfile() -> None:
-        if (newpath := tk.filedialog.asksaveasfilename()):
+        newpath: Optional[str] = tkfiledialog.asksaveasfilename()
+        if (newpath):
             try:
                 newpath = os.path.relpath(newpath)
             except:
@@ -299,6 +323,7 @@ def launch_gui() -> None:
     # populate the middle frame
     fasta_rbtn.grid(row=0, column=0)
     fastq_rbtn.grid(row=0, column=1)
+    text_rbtn.grid(row=0, column=2)
 
     # populate the bottom frame
     maxsize_rbtn.grid(row=0, column=0, sticky='w')
@@ -312,7 +337,7 @@ def launch_gui() -> None:
 
     # populate the main frame
     top_frame.grid(row=0, column=0, sticky='nsew')
-    middle_frame.grid(row=1, column=0, sticky='nsew')
+    middle_frame.grid(row=1, column=0, sticky='nsw')
     bottom_frame.grid(row=2, column=0, sticky='nsew')
     pattern_hint_lbl.grid(row=3, column=0, sticky='w')
 
@@ -337,6 +362,8 @@ format_group.add_argument('--fasta', dest='format', action='store_const',
                           const='fasta', help='Input file is a fasta file')
 format_group.add_argument('--fastq', dest='format', action='store_const',
                           const='fastq', help='Input file is a fastq file')
+format_group.add_argument('--text', dest='format', action='store_const',
+                          const='text', help='Input file is a text file')
 
 split_group = argparser.add_mutually_exclusive_group()
 split_group.add_argument('--split_n', type=int,

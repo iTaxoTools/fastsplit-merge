@@ -49,7 +49,7 @@ When --seqid or --sequence and either --fasta or --fastq options are given, only
 ## Fastsplit
 
 ### Usage
-    usage: fastsplit.py [-h] [--fasta | --fastq] [--split_n SPLIT_N | --maxsize MAXSIZE | --seqid PATTERN | --sequence PATTERN] [--compressed]
+    usage: fastsplit.py [-h] [--fasta | --fastq | --text] [--split_n SPLIT_N | --maxsize MAXSIZE | --seqid PATTERN | --sequence PATTERN] [--compressed]
                         [infile] [outfile]
     
     positional arguments:
@@ -60,6 +60,7 @@ When --seqid or --sequence and either --fasta or --fastq options are given, only
       -h, --help          show this help message and exit
       --fasta             Input file is a fasta file
       --fastq             Input file is a fastq file
+      --text              Input file is a text file
       --split_n SPLIT_N   number of files to split into
       --maxsize MAXSIZE   Maximum size of output file
       --seqid PATTERN     split the records that match the sequence identifier pattern
@@ -68,7 +69,7 @@ When --seqid or --sequence and either --fasta or --fastq options are given, only
 
 ### Command-line interface
 Fastsplit reads the input file and splits into files according to the options.
-Currently supported formats are FASTA and FastQ.
+Currently supported formats are FASTA and FastQ. Arbitrary text files can also be processed, but `seqid` and `sequence` options are not supportd for them.
 The spliting criteria are:
 * Number of output parts (`split_n`)
 * Limit on maximum size of parts (`maxsize`). The size is specified in in the format `{number}{unit}` where unit is one of 'bBkKmMgG'.
