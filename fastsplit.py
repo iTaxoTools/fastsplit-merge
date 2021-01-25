@@ -67,9 +67,9 @@ def fastsplit(file_format: str, split_n: Optional[int], maxsize: Optional[int], 
         # raise error, if there is no input file
         raise ValueError("No input file")
     if infile_path.endswith(".gz"):
-        infile = cast(TextIO, gzip.open(infile_path, mode="rt"))
+        infile = cast(TextIO, gzip.open(infile_path, mode="rt", errors='replace'))
     else:
-        infile = open(infile_path)
+        infile = open(infile_path, errors='replace')
     with infile:
         # prepare a valid output template
         if not outfile_template:
@@ -120,9 +120,9 @@ def fastsplit_fasta_filter(infile: TextIO, seqid_pattern: Optional[Pattern], seq
     # creates a function to open output files
     if compressed:
         def opener(name: str) -> TextIO: return cast(TextIO,
-                                                     gzip.open(name, mode="wt"))
+                                                     gzip.open(name, mode="wt", errors='replace'))
     else:
-        def opener(name: str) -> TextIO: return open(name, mode="w")
+        def opener(name: str) -> TextIO: return open(name, mode="w", errors='replace')
     # assemples names and open output files
     accepted_file, rejected_file = map(opener, map(
         lambda s: outfile_template.replace('#', s), ['_accepted', '_rejected']))
@@ -155,9 +155,9 @@ def fastsplit_fastq_filter(infile: TextIO, seqid_pattern: Optional[Pattern], seq
     # creates a function to open output files
     if compressed:
         def opener(name: str) -> TextIO: return cast(TextIO,
-                                                     gzip.open(name, mode="wt"))
+                                                     gzip.open(name, mode="wt", errors='replace'))
     else:
-        def opener(name: str) -> TextIO: return open(name, mode="w")
+        def opener(name: str) -> TextIO: return open(name, mode="w", errors='replace')
     # assemples names and open output files
     accepted_file, rejected_file = map(opener, map(
         lambda s: outfile_template.replace('#', s), ['_accepted', '_rejected']))
