@@ -9,6 +9,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.filedialog as tkfiledialog
 import tkinter.messagebox
+import tkinter.font as tkfont
 
 
 def parse_size(s: str) -> Optional[int]:
@@ -180,10 +181,14 @@ def launch_gui() -> None:
     # the base of the gui
     root = tk.Tk()
     root.title("Fastsplit")
+    if os.name == "nt":
+        root.wm_iconbitmap(os.path.join('data', 'dnaconvert.ico'))
     mainframe = ttk.Frame(root, padding=5)
-    top_frame = ttk.Frame(mainframe)
+    top_frame = ttk.Frame(mainframe, padding="0 0 0 5")
     middle_frame = ttk.Frame(mainframe)
     bottom_frame = ttk.Frame(mainframe)
+    style = ttk.Style()
+    style.configure("SplitButton.TButton", background="blue")
 
     # create labels
     infile_lbl = ttk.Label(top_frame, text="Input file")
@@ -309,16 +314,20 @@ def launch_gui() -> None:
         top_frame, text="Browse", command=browse_infile)
     outfile_browse_btn = ttk.Button(
         top_frame, text="Browse", command=browse_outfile)
-    split_btn = ttk.Button(top_frame, text="Split", command=fastsplit_gui)
+    split_btn = ttk.Button(top_frame, text="Split", command=fastsplit_gui, style="SplitButton.TButton")
 
     # populate the top frame
+    logo_img = tk.PhotoImage(file=os.path.join(sys.path[0], "data", "iTaxoTools Digital linneaeus MICROLOGO.png"))
+    ttk.Label(top_frame, image=logo_img).grid(row=0, column=3, rowspan=3, sticky='e')
     infile_lbl.grid(row=0, column=0, sticky='w')
     infile_entry.grid(row=1, column=0, sticky='we')
     infile_browse_btn.grid(row=1, column=1, sticky='w')
     outfile_lbl.grid(row=2, column=0, sticky='w')
     outfile_entry.grid(row=3, column=0, sticky='we')
     outfile_browse_btn.grid(row=3, column=1, sticky='w')
-    split_btn.grid(row=3, column=2, sticky='e')
+    split_btn.grid(row=3, column=3, sticky='e')
+    compressed_checkbutton.grid(row=4, column=0, sticky='w')
+    ttk.Label(top_frame).grid(row=3, column=2, sticky='nsew', padx=5)
 
     # populate the middle frame
     fasta_rbtn.grid(row=0, column=0)
@@ -341,14 +350,21 @@ def launch_gui() -> None:
     bottom_frame.grid(row=2, column=0, sticky='nsew')
     pattern_hint_lbl.grid(row=3, column=0, sticky='w')
 
-    mainframe.grid(row=0, column=0, sticky='nsew')
+    banner_frame = ttk.Frame(root)
+    ttk.Label(banner_frame, text="Fastsplit", font=tkfont.Font(size=20)).grid(row=0, column=0, sticky='w')
+    ttk.Label(banner_frame, text="Split large sequences or text files into smaller files").grid(row=1, column=0, sticky='w')
+
+    banner_frame.grid(row=0, column=0, sticky='nsew')
+
+    ttk.Separator(root, orient='horizontal').grid(row=1, column=0, sticky='nsew')
+
+    mainframe.grid(row=2, column=0, sticky='nsew')
 
     # configure the resizing
-    root.rowconfigure(0, weight=1)
+    root.rowconfigure(2, weight=1)
     root.columnconfigure(0, weight=1)
     mainframe.columnconfigure(0, weight=1)
     top_frame.columnconfigure(0, weight=1)
-    top_frame.columnconfigure(2, weight=5)
     middle_frame.columnconfigure(2, weight=1)
     bottom_frame.columnconfigure(1, weight=1)
 
