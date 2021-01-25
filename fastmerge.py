@@ -59,9 +59,9 @@ def fastmerge_pure(file_list: Iterable[str], output: TextIO) -> None:
     for entry in list_files(file_list):
         # open the file as archive or text file
         if os.path.splitext(entry)[1] == '.gz':
-            file = cast(TextIO, gzip.open(entry, mode='rt'))
+            file = cast(TextIO, gzip.open(entry, mode='rt', errors='replace'))
         else:
-            file = open(entry)
+            file = open(entry, errors='replace')
         # copy the lines to the output
         with file:
             for line in file:
@@ -78,9 +78,9 @@ def fastmerge_type(file_list: Iterable[str], file_types: Set[str], output: TextI
             continue
         # open the file as archive or text file
         if os.path.splitext(entry)[1] == '.gz':
-            file = cast(TextIO, gzip.open(entry, mode='rt'))
+            file = cast(TextIO, gzip.open(entry, mode='rt', errors='replace'))
         else:
-            file = open(entry)
+            file = open(entry, errors='replace')
         # copy the lines to the output
         with file:
             for line in file:
@@ -98,9 +98,9 @@ def fastmerge_fasta_filter(file_list: Iterable[str], seqid_pattern: Optional[Pat
             continue
         # copy the lines to the output
         if os.path.splitext(entry)[1] == '.gz':
-            file = cast(TextIO, gzip.open(entry, mode='rt'))
+            file = cast(TextIO, gzip.open(entry, mode='rt', errors='replace'))
         else:
-            file = open(entry)
+            file = open(entry, errors='replace')
         with file:
             # warn about the line breaks
             line_breaks_warned = False
@@ -133,9 +133,9 @@ def fastmerge_fastq_filter(file_list: Iterable[str], seqid_pattern: Optional[Pat
             continue
         # copy the lines to the output
         if os.path.splitext(entry)[1] == '.gz':
-            file = cast(TextIO, gzip.open(entry, mode='rt'))
+            file = cast(TextIO, gzip.open(entry, mode='rt', errors='replace'))
         else:
-            file = open(entry)
+            file = open(entry, errors='replace')
         with file:
             for seqid, sequence, quality_score_seqid, quality_score in fastq_iter(file):
                 # skip sequences that don't match the seqid pattern
@@ -321,9 +321,9 @@ def launch_gui() -> None:
             file_types = fastq_exts
         if compress_output.get():
             output = cast(TextIO, gzip.open(
-                output_file.get() + ".gz", mode="wt"))
+                output_file.get() + ".gz", mode="wt", errors='replace'))
         else:
-            output = open(output_file.get(), mode="w")
+            output = open(output_file.get(), mode="w", errors='replace')
 
         try:
             # catch all warnings
