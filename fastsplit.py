@@ -182,7 +182,7 @@ def launch_gui() -> None:
     root = tk.Tk()
     root.title("Fastsplit")
     if os.name == "nt":
-        root.wm_iconbitmap(os.path.join('data', 'dnaconvert.ico'))
+        root.wm_iconbitmap(os.path.join('data', 'Fastsplit_icon.ico'))
     mainframe = ttk.Frame(root, padding=5)
     top_frame = ttk.Frame(mainframe, padding="0 0 0 5")
     middle_frame = ttk.Frame(mainframe)
