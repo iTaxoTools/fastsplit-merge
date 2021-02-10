@@ -194,7 +194,8 @@ def launch_gui() -> None:
     file_list_lbl = ttk.Label(
         top_frame, text="List of input files and directories")
     file_list_var = tk.StringVar()
-    file_list_box = tk.Listbox(top_frame, listvariable=file_list_var, height=10)
+    file_list_box = tk.Listbox(
+        top_frame, listvariable=file_list_var, height=10)
     file_scroll = ttk.Scrollbar(
         top_frame, orient=tk.VERTICAL, command=file_list_box.yview)
     file_list_box.configure(yscrollcommand=file_scroll.set)
@@ -225,6 +226,10 @@ def launch_gui() -> None:
         for idx in file_list_box.curselection():
             file_list_box.delete(idx)
 
+    # clear files button command
+    def clear_files() -> None:
+        file_list_box.delete(0, 'end')
+
     # buttons for the list of files
     browse_files_button = ttk.Button(
         top_frame, text="Browse files", command=browse_files)
@@ -232,14 +237,17 @@ def launch_gui() -> None:
         top_frame, text="Browse a directory", command=browse_directory)
     remove_file_button = ttk.Button(
         top_frame, text="Remove", command=remove_file)
+    clear_files_button = ttk.Button(
+        top_frame, text="Clear", command=clear_files)
 
     # place the file selection widget group
     file_list_lbl.grid(row=0, column=0)
-    file_list_box.grid(row=1, rowspan=4, column=0, sticky='nswe')
-    file_scroll.grid(row=1, rowspan=4, column=1, sticky='nsw')
+    file_list_box.grid(row=1, rowspan=5, column=0, sticky='nswe')
+    file_scroll.grid(row=1, rowspan=5, column=1, sticky='nsw')
     browse_files_button.grid(row=1, column=2, sticky='nwe')
     browse_directory_button.grid(row=2, column=2, sticky='nwe')
     remove_file_button.grid(row=3, column=2, sticky='nwe')
+    clear_files_button.grid(row=4, column=2, sticky='nwe')
 
     # radiobuttons for the format selection
     format_var = tk.StringVar()
@@ -364,10 +372,11 @@ def launch_gui() -> None:
     compress_output_chk.grid(row=2, column=4)
 
     # the merge button
-    merge_btn = ttk.Button(top_frame, text="Merge", command=gui_merge, style="MergeButton.TButton")
+    merge_btn = ttk.Button(top_frame, text="Merge",
+                           command=gui_merge, style="MergeButton.TButton")
 
     # place the merge button
-    merge_btn.grid(row=4, column=0, columnspan=6)
+    merge_btn.grid(row=5, column=0, columnspan=6)
 
     # some spacing between input and output widget in the top_frame
     ttk.Label(top_frame).grid(row=0, column=3, padx=20)
@@ -382,7 +391,7 @@ def launch_gui() -> None:
     root.columnconfigure(0, weight=1)
     mainframe.rowconfigure(0, weight=1)
     mainframe.columnconfigure(0, weight=1)
-    top_frame.rowconfigure(3, weight=1)
+    top_frame.rowconfigure(4, weight=1)
     top_frame.columnconfigure(3, weight=1)
     middle_frame.columnconfigure(3, weight=1)
     bottom_frame.columnconfigure(1, weight=1)
