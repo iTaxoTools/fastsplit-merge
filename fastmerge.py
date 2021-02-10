@@ -15,7 +15,7 @@ import ast
 from tkinter import ttk
 
 # extensions of the fasta files
-fasta_exts = {'.fas'}
+fasta_exts = {'.fas', '.fasta'}
 # extensions of the fastq files
 fastq_exts = {'.fq', '.fastq'}
 
