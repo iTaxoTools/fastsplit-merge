@@ -15,7 +15,7 @@ import ast
 from tkinter import ttk
 
 # extensions of the fasta files
-fasta_exts = {'.fas'}
+fasta_exts = {'.fas', '.fasta'}
 # extensions of the fastq files
 fastq_exts = {'.fq', '.fastq'}
 
@@ -65,7 +65,7 @@ def fastmerge_pure(file_list: Iterable[str], output: TextIO) -> None:
         # copy the lines to the output
         with file:
             for line in file:
-                output.write(line)
+                print(line.rstrip(), file=output)
 
 
 def fastmerge_type(file_list: Iterable[str], file_types: Set[str], output: TextIO) -> None:
@@ -84,7 +84,7 @@ def fastmerge_type(file_list: Iterable[str], file_types: Set[str], output: TextI
         # copy the lines to the output
         with file:
             for line in file:
-                output.write(line)
+                print(line.rstrip(), file=output)
 
 
 def fastmerge_fasta_filter(file_list: Iterable[str], seqid_pattern: Optional[Pattern], sequence_pattern: Optional[Pattern], output: TextIO) -> None:
@@ -117,9 +117,9 @@ def fastmerge_fasta_filter(file_list: Iterable[str], seqid_pattern: Optional[Pat
                     if not any(map(sequence_pattern.match, sequence)):
                         continue
                 # copy the lines into the output
-                output.write(seqid)
+                print(seqid.rstrip(), file=output)
                 for chunk in sequence:
-                    output.write(chunk)
+                    print(chunk.rstrip(), file=output)
 
 
 def fastmerge_fastq_filter(file_list: Iterable[str], seqid_pattern: Optional[Pattern], sequence_pattern: Optional[Pattern], output: TextIO) -> None:
@@ -146,10 +146,10 @@ def fastmerge_fastq_filter(file_list: Iterable[str], seqid_pattern: Optional[Pat
                 if sequence_pattern:
                     if not sequence_pattern.match(sequence):
                         continue
-                output.write(seqid)
-                output.write(sequence)
-                output.write(quality_score_seqid)
-                output.write(quality_score)
+                print(seqid.rstrip(), file=output)
+                print(sequence.rstrip(), file=output)
+                print(quality_score_seqid.rstrip(), file=output)
+                print(quality_score.rstrip(), file=output)
 
 
 def launch_gui() -> None:
@@ -318,8 +318,10 @@ def launch_gui() -> None:
     # command for the merge button
     def gui_merge() -> None:
         if not file_list_var.get():
+            tkinter.messagebox.showwarning("Warning", "No input files given")
             return
         if not output_file.get():
+            tkinter.messagebox.showwarning("Warning", "No output file given")
             return
         file_list = cast(Tuple[str], ast.literal_eval(file_list_var.get()))
         file_types = None

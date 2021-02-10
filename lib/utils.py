@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-from typing import TextIO, Tuple, Iterator, List, Optional, Any, Union, IO, AnyStr, Generator, cast
+from typing import TextIO, Tuple, Iterator, List, Optional, Any, Union, IO, Generator, cast
 import re
 import os
 import gzip
+
+rePattern = type(re.compile(""))
 
 
 def ext_gz(path: Union[str, os.PathLike]) -> str:
@@ -315,7 +317,7 @@ class Pattern:
     @staticmethod
     def _match(pattern: Any, line: str) -> bool:
         """The internal matching algorithm"""
-        if isinstance(pattern, re.Pattern):
+        if isinstance(pattern, rePattern):
             # pattern is a regex; simple match
             return bool(pattern.search(line))
         elif isinstance(pattern, list):
