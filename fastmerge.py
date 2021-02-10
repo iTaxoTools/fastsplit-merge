@@ -318,8 +318,10 @@ def launch_gui() -> None:
     # command for the merge button
     def gui_merge() -> None:
         if not file_list_var.get():
+            tkinter.messagebox.showwarning("Warning", "No input files given")
             return
         if not output_file.get():
+            tkinter.messagebox.showwarning("Warning", "No output file given")
             return
         file_list = cast(Tuple[str], ast.literal_eval(file_list_var.get()))
         file_types = None
