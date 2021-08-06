@@ -3,7 +3,7 @@
 from typing import Any
 import importlib.resources
 
-_resource_path = importlib.resources.files('itaxotools.fastsplit') / "resources"
+_resource_path = importlib.resources.files('itaxotools.fastsplit_merge') / "resources"
 
 
 def get_resource(path: Any) -> str:

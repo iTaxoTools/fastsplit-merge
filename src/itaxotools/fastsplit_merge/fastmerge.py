@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from lib.utils import *
+from .library.utils import *
 from typing import Iterator, Union, TextIO, cast, Optional, Set, Iterable
 import os
 import argparse
@@ -13,6 +13,8 @@ import tkinter.messagebox
 import tkinter.font as tkfont
 import ast
 from tkinter import ttk
+
+from .library.resources import get_resource
 
 # extensions of the fasta files
 fasta_exts = {'.fas', '.fasta'}
@@ -161,7 +163,7 @@ def launch_gui() -> None:
     root.title("Fastmerge")
     root.rowconfigure(2, weight=1)
     if os.name == "nt":
-        root.wm_iconbitmap(os.path.join('data', 'Fastmerge_icon.ico'))
+        root.wm_iconbitmap(get_resource('Fastmerge_icon.ico'))
     mainframe = ttk.Frame(root, padding=5)
     mainframe.grid(column=0, row=2, sticky='nsew')
 
@@ -171,8 +173,8 @@ def launch_gui() -> None:
     # banner frame
     banner_frame = ttk.Frame(root)
     banner_frame.columnconfigure(1, weight=1)
-    banner_img = tk.PhotoImage(file=os.path.join(
-        "data", "iTaxoTools Digital linneaeus MICROLOGO.png"))
+    banner_img = tk.PhotoImage(file=get_resource(
+        "iTaxoTools Digital linneaeus MICROLOGO.png"))
     banner_image = ttk.Label(banner_frame, image=banner_img)
     banner_image.grid(row=0, column=3, rowspan=3, sticky='nse')
     program_name = ttk.Label(
@@ -401,29 +403,30 @@ def launch_gui() -> None:
     root.mainloop()
 
 
-argparser = argparse.ArgumentParser()
-argparser.add_argument('--cmd', action='store_true',
-                       help="Launches in the command-line mode")
-format_group = argparser.add_mutually_exclusive_group()
-format_group.add_argument('--fasta', dest='ext', action='store_const', const=fasta_exts,
-                          help="Process only .fas and .fas.gz files")
-format_group.add_argument('--fastq', dest='ext', action='store_const', const=fastq_exts,
-                          help="Process only .fq, .fq.gz, .fastq and .fastq.gz files")
-argparser.add_argument('--seqid', metavar='PATTERN',
-                       help="Filter pattern for sequence names")
-argparser.add_argument('--sequence', metavar='PATTERN',
-                       help="Filter pattern for sequences")
+def main() -> None:
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('--cmd', action='store_true',
+                           help="Launches in the command-line mode")
+    format_group = argparser.add_mutually_exclusive_group()
+    format_group.add_argument('--fasta', dest='ext', action='store_const', const=fasta_exts,
+                              help="Process only .fas and .fas.gz files")
+    format_group.add_argument('--fastq', dest='ext', action='store_const', const=fastq_exts,
+                              help="Process only .fq, .fq.gz, .fastq and .fastq.gz files")
+    argparser.add_argument('--seqid', metavar='PATTERN',
+                           help="Filter pattern for sequence names")
+    argparser.add_argument('--sequence', metavar='PATTERN',
+                           help="Filter pattern for sequences")
 
-args = argparser.parse_args()
+    args = argparser.parse_args()
 
-if not args.cmd:
-    launch_gui()
-else:
-    try:
-        with warnings.catch_warnings(record=True) as warns:
-            fastmerge(sys.stdin, args.ext,
-                      args.seqid, args.sequence, sys.stdout)
-            for w in warns:
-                print(w.message)
-    except ValueError as ex:
-        sys.exit(ex)
+    if not args.cmd:
+        launch_gui()
+    else:
+        try:
+            with warnings.catch_warnings(record=True) as warns:
+                fastmerge(sys.stdin, args.ext,
+                          args.seqid, args.sequence, sys.stdout)
+                for w in warns:
+                    print(w.message)
+        except ValueError as ex:
+            sys.exit(ex)

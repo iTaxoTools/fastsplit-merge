@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from lib.utils import *
+from .library.utils import *
 from typing import Optional, List, cast, BinaryIO
 import warnings
 import sys
@@ -10,6 +10,8 @@ import tkinter.ttk as ttk
 import tkinter.filedialog as tkfiledialog
 import tkinter.messagebox
 import tkinter.font as tkfont
+
+from .library.resources import get_resource
 
 
 def parse_size(s: str) -> Optional[int]:
@@ -182,7 +184,7 @@ def launch_gui() -> None:
     root = tk.Tk()
     root.title("Fastsplit")
     if os.name == "nt":
-        root.wm_iconbitmap(os.path.join('data', 'Fastsplit_icon.ico'))
+        root.wm_iconbitmap(get_resource('Fastsplit_icon.ico'))
     mainframe = ttk.Frame(root, padding=5)
     top_frame = ttk.Frame(mainframe, padding="0 0 0 5")
     middle_frame = ttk.Frame(mainframe)
@@ -231,7 +233,7 @@ def launch_gui() -> None:
     fastq_rbtn = ttk.Radiobutton(
         middle_frame, text='fastq', variable=format_var, value='fastq')
     text_rbtn = ttk.Radiobutton(
-            middle_frame, text='text', variable=format_var, value='text')
+        middle_frame, text='text', variable=format_var, value='text')
     option_var = tk.StringVar(value='maxsize')
     maxsize_rbtn = ttk.Radiobutton(
         bottom_frame, text='Maximum size', variable=option_var, value='maxsize')
@@ -314,10 +316,12 @@ def launch_gui() -> None:
         top_frame, text="Browse", command=browse_infile)
     outfile_browse_btn = ttk.Button(
         top_frame, text="Browse", command=browse_outfile)
-    split_btn = ttk.Button(top_frame, text="Split", command=fastsplit_gui, style="SplitButton.TButton")
+    split_btn = ttk.Button(top_frame, text="Split",
+                           command=fastsplit_gui, style="SplitButton.TButton")
 
     # populate the top frame
-    logo_img = tk.PhotoImage(file=os.path.join(sys.path[0], "data", "iTaxoTools Digital linneaeus MICROLOGO.png"))
+    logo_img = tk.PhotoImage(file=get_resource(
+        "iTaxoTools Digital linneaeus MICROLOGO.png"))
     ttk.Label(top_frame, image=logo_img).grid(row=0, column=3, rowspan=3, sticky='e')
     infile_lbl.grid(row=0, column=0, sticky='w')
     infile_entry.grid(row=1, column=0, sticky='we')
@@ -351,8 +355,10 @@ def launch_gui() -> None:
     pattern_hint_lbl.grid(row=3, column=0, sticky='w')
 
     banner_frame = ttk.Frame(root)
-    ttk.Label(banner_frame, text="Fastsplit", font=tkfont.Font(size=20)).grid(row=0, column=0, sticky='w')
-    ttk.Label(banner_frame, text="Split large sequences or text files into smaller files").grid(row=1, column=0, sticky='w')
+    ttk.Label(banner_frame, text="Fastsplit", font=tkfont.Font(
+        size=20)).grid(row=0, column=0, sticky='w')
+    ttk.Label(banner_frame, text="Split large sequences or text files into smaller files").grid(
+        row=1, column=0, sticky='w')
 
     banner_frame.grid(row=0, column=0, sticky='nsew')
 
@@ -371,43 +377,42 @@ def launch_gui() -> None:
     root.mainloop()
 
 
-argparser = argparse.ArgumentParser()
+def main() -> None:
+    argparser = argparse.ArgumentParser()
 
-format_group = argparser.add_mutually_exclusive_group()
-format_group.add_argument('--fasta', dest='format', action='store_const',
-                          const='fasta', help='Input file is a fasta file')
-format_group.add_argument('--fastq', dest='format', action='store_const',
-                          const='fastq', help='Input file is a fastq file')
-format_group.add_argument('--text', dest='format', action='store_const',
-                          const='text', help='Input file is a text file')
+    format_group = argparser.add_mutually_exclusive_group()
+    format_group.add_argument('--fasta', dest='format', action='store_const',
+                              const='fasta', help='Input file is a fasta file')
+    format_group.add_argument('--fastq', dest='format', action='store_const',
+                              const='fastq', help='Input file is a fastq file')
+    format_group.add_argument('--text', dest='format', action='store_const',
+                              const='text', help='Input file is a text file')
 
-split_group = argparser.add_mutually_exclusive_group()
-split_group.add_argument('--split_n', type=int,
-                         help='number of files to split into')
-split_group.add_argument('--maxsize', type=parse_size,
-                         help='Maximum size of output file')
-split_group.add_argument('--seqid', metavar='PATTERN',
-                         help='split the records that match the sequence identifier pattern')
-split_group.add_argument('--sequence', metavar='PATTERN',
-                         help='split the records that match the sequence motif pattern')
+    split_group = argparser.add_mutually_exclusive_group()
+    split_group.add_argument('--split_n', type=int,
+                             help='number of files to split into')
+    split_group.add_argument('--maxsize', type=parse_size,
+                             help='Maximum size of output file')
+    split_group.add_argument('--seqid', metavar='PATTERN',
+                             help='split the records that match the sequence identifier pattern')
+    split_group.add_argument('--sequence', metavar='PATTERN',
+                             help='split the records that match the sequence motif pattern')
 
+    argparser.add_argument('--compressed', action='store_true',
+                           help='Compress output files with gzip')
+    argparser.add_argument('infile', nargs='?', help='Input file name')
+    argparser.add_argument('outfile', nargs='?', help='outfile file template')
 
-argparser.add_argument('--compressed', action='store_true',
-                       help='Compress output files with gzip')
-argparser.add_argument('infile', nargs='?', help='Input file name')
-argparser.add_argument('outfile', nargs='?', help='outfile file template')
+    args = argparser.parse_args()
 
-
-args = argparser.parse_args()
-
-if not args.format:
-    launch_gui()
-else:
-    try:
-        with warnings.catch_warnings(record=True) as warns:
-            fastsplit(args.format, args.split_n, args.maxsize, args.seqid,
-                      args.sequence, args.infile, args.compressed, args.outfile)
-            for w in warns:
-                print(w.message)
-    except ValueError as ex:
-        sys.exit(ex)
+    if not args.format:
+        launch_gui()
+    else:
+        try:
+            with warnings.catch_warnings(record=True) as warns:
+                fastsplit(args.format, args.split_n, args.maxsize, args.seqid,
+                          args.sequence, args.infile, args.compressed, args.outfile)
+                for w in warns:
+                    print(w.message)
+        except ValueError as ex:
+            sys.exit(ex)
