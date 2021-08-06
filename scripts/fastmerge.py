@@ -2,8 +2,8 @@
 
 import multiprocessing
 
-from itaxotools.fastsplit_merge import fastsplit_main
+from itaxotools.fastsplit_merge import fastmerge_main
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()
-    fastsplit_main()
+    fastmerge_main()
